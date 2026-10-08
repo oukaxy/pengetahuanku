@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Peta Pengetahuanku</title>
+<style>
+:root{--bg:#eef1f6;--panel:#fff;--ink:#1c2333;--mute:#6b7488;--line:#b9c1d1;--bd:#dde2ec;--acc:#3b4cca;
+box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#161b2a;--panel:#212840;--ink:#e8ecf6;--mute:#98a2ba;--line:#4a5575;--bd:#323b57;--acc:#8b97ff}}
+:root[data-theme="dark"]{--bg:#161b2a;--panel:#212840;--ink:#e8ecf6;--mute:#98a2ba;--line:#4a5575;--bd:#323b57;--acc:#8b97ff}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+html,body{height:100%;margin:0}
+body{background:var(--bg);color:var(--ink);font-family:'Figtree',system-ui,-apple-system,'Segoe UI',sans-serif;overflow:hidden}
+#app{height:100%;display:flex;flex-direction:column;position:relative}
+header{display:flex;align-items:center;gap:8px;padding:10px 12px 8px;flex-wrap:wrap}
+h1{font-size:17px;margin:0;font-weight:700}.top{flex:1 0 100%;display:flex;justify-content:space-between;align-items:baseline;gap:8px}#st{font-size:12px;color:var(--mute);text-align:right}#bn{flex:1 0 100%;display:none;align-items:center;gap:8px;font-size:13px;background:var(--panel);border:1px solid var(--bd);border-radius:10px;padding:6px 10px}#bn.on{display:flex}#bn span{flex:1}.acts{flex:1 0 100%;display:grid;grid-template-columns:repeat(5,1fr);gap:6px}.acts .btn{padding:8px 2px;font-size:12.5px;text-align:center;white-space:nowrap}.btn[disabled]{opacity:.4;cursor:default}
+button,select,input{font:inherit;color:var(--ink)}
+.btn{background:var(--panel);border:1px solid var(--bd);border-radius:10px;padding:7px 10px;cursor:pointer;font-weight:600;font-size:13px}
+.btn.p{background:var(--acc);border-color:var(--acc);color:#fff}
+:root:not([data-theme="light"]) .btn.p{color:#101528}
+.btn.d{color:#d6334a}
+button:focus-visible,input:focus-visible,select:focus-visible{outline:2px solid var(--acc);outline-offset:2px}
+#gw{flex:1;min-height:0;position:relative}
+svg{width:100%;height:100%;display:block;touch-action:none}
+.node{cursor:grab}
+.node text{font-size:12px;font-weight:600;fill:var(--ink);pointer-events:none;paint-order:stroke;stroke:var(--bg);stroke-width:3px}
+.node circle{stroke:var(--bg);stroke-width:2.5px}
+.node.sel circle{stroke:var(--ink);stroke-width:3px}
+.dim{opacity:.18}.lab.show{opacity:1}
+.link{stroke:var(--line);stroke-width:1.6}.ah{fill:var(--line)}.node circle.nm{fill:#f5c542;stroke-width:1.5px}
+.lab{opacity:0;transition:opacity .15s;font-size:11px;fill:var(--ink);text-anchor:middle;pointer-events:none;paint-order:stroke;stroke:var(--bg);stroke-width:3px}
+#tools{padding:0 12px 8px;display:flex;flex-direction:column;gap:8px}#q{background:var(--panel)!important}#legend{display:flex;gap:6px;flex-wrap:nowrap;overflow-x:auto;scrollbar-width:none}#legend::-webkit-scrollbar{display:none}.chip{flex:none}.chip{display:inline-flex;align-items:center;gap:5px;background:var(--panel);border:1px solid var(--bd);border-radius:99px;padding:3px 9px;font-size:12px;cursor:pointer;color:var(--mute)}.chip i{width:9px;height:9px;border-radius:50%;display:inline-block}.chip.off{opacity:.45;text-decoration:line-through}.hide{display:none}.row.w{flex-wrap:wrap}.row.w>*{flex:1 0 auto}
+#sheet{position:absolute;left:0;right:0;bottom:0;background:var(--panel);border-top:1px solid var(--bd);border-radius:16px 16px 0 0;padding:14px 14px calc(14px + env(safe-area-inset-bottom,0px));max-height:62%;overflow-y:auto;box-shadow:0 -6px 24px rgba(20,28,60,.14);display:none}
+#sheet.on{display:block}
+@media(min-width:760px){#sheet{left:auto;width:380px;right:12px;bottom:12px;border-radius:16px;border:1px solid var(--bd)}}
+.row{display:flex;gap:8px;margin-bottom:10px;align-items:center}
+.row>*{flex:1;min-width:0}
+label{font-size:13px;color:var(--mute);display:block;margin-bottom:4px}
+input[type=text],select,textarea{width:100%;box-sizing:border-box;background:var(--bg);border:1px solid var(--bd);border-radius:9px;padding:9px 10px}
+textarea{font:12px ui-monospace,monospace;color:var(--ink);height:130px}
+h2{font-size:15px;margin:0 0 10px;display:flex;justify-content:space-between;align-items:center}
+.x{background:none;border:0;font-size:22px;line-height:1;cursor:pointer;color:var(--mute)}
+.conn{display:flex;justify-content:space-between;align-items:center;font-size:13px;padding:5px 0;border-bottom:1px solid var(--bd)}
+.hint{font-size:13px;color:var(--mute);margin:0 0 10px}
+</style>
+</head>
+<body>
+<div id="app">
+<header>
+<div class="top"><h1>Peta Pengetahuanku</h1><span id="st"></span></div>
+<div id="bn"><span></span><button class="btn" id="bnB">Ekspor</button></div>
+<div class="acts"><button class="btn p" id="bAdd">Tambah</button>
+<button class="btn" id="bAn">Analisis</button>
+<button class="btn" id="bFit">Rapikan</button>
+<button class="btn" id="bUn" disabled>Urungkan</button>
+<button class="btn" id="bExp">Ekspor</button></div>
+</header>
+<div id="tools"><input type="text" id="q" placeholder="Cari node…" aria-label="Cari node"><div id="legend"></div></div>
+<div id="gw"><svg id="g" role="img" aria-label="Graf pengetahuan"></svg></div>
+<div id="sheet"></div>
+</div>
+<datalist id="rels"><option value="bagian dari"><option value="dipakai di"><option value="prasyarat untuk"><option value="dibutuhkan oleh"><option value="mendukung"><option value="terkait"></datalist>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/d3/7.9.0/d3.min.js"></script>
+<script>
+const TYPES={Bidang:'#3b4cca',Skill:'#0f9d8a',Karir:'#e08a00',Konsep:'#9b51e0',Proyek:'#e0457b'};
+const KEY='kg-peta-v1';
+let nodes=[],links=[],sel=null,uid=1,hl=null,ts=0,hid=new Set(),q='',hist=[],dbDoc=null,synced=false,pushT=null,dl=null,booting=true;const MK='kg-meta-v1';
+function seed(){
+ const n=(id,name,type,level)=>({id,name,type,level,note:''});
+ nodes=[n('a','Digital Marketing','Bidang',3),n('b','SEO','Skill',3),n('c','Paid Ads','Skill',3),n('d','Copywriting','Skill',3),n('e','Analytics','Skill',2),n('f','Content Strategy','Konsep',3)];
+ links=[['b','a','bagian dari'],['c','a','bagian dari'],['d','a','bagian dari'],['e','a','bagian dari'],['f','a','bagian dari'],['e','c','mendukung']].map((l,i)=>({id:'s'+i,source:l[0],target:l[1],rel:l[2]}));
+ uid=100;
+}
+function load(){try{const j=JSON.parse(localStorage.getItem(KEY)||'null');if(j&&j.nodes){nodes=j.nodes;links=j.links.map((l,i)=>({id:l.id||'l'+i,source:l.s,target:l.t,rel:l.rel}));uid=j.uid||1000;ts=j.ts||0;return}}catch(e){}seed()}
+const snapData=()=>({uid,ts,nodes:nodes.map(({id,name,type,level,note})=>({id,name,type,level,note})),links:links.map(l=>({id:l.id,s:idOf(l.source),t:idOf(l.target),rel:l.rel}))});
+function save(){if(booting)return;ts=Date.now();try{localStorage.setItem(KEY,JSON.stringify(snapData()))}catch(e){}pushRemote()}
+const idOf=x=>typeof x==='object'?x.id:x;
+const R=d=>d.type==='Bidang'?24:d.type==='Karir'?20:9+(d.level||2)*2.5;
+load();
+const svg=d3.select('#g');svg.append('defs').append('marker').attr('id','ar').attr('viewBox','0 0 10 10').attr('refX',9).attr('refY',5).attr('markerWidth',6).attr('markerHeight',6).attr('orient','auto').append('path').attr('d','M0,0L10,5L0,10z').attr('class','ah');
+const root=svg.append('g'),linkG=root.append('g'),labG=root.append('g'),nodeG=root.append('g');
+const zoom=d3.zoom().scaleExtent([.3,3]).on('zoom',e=>root.attr('transform',e.transform));svg.call(zoom).on('dblclick.zoom',null);
+svg.on('click',e=>{if(e.target===svg.node()){sel=null;closeSheet();draw()}});
+const sim=d3.forceSimulation().force('link',d3.forceLink().id(d=>d.id).distance(135)).force('charge',d3.forceManyBody().strength(-560)).force('collide',d3.forceCollide(d=>R(d)+34)).force('x',d3.forceX().strength(.04)).force('y',d3.forceY().strength(.04));
+function center(){const b=document.getElementById('g').getBoundingClientRect();sim.force('x').x(b.width/2);sim.force('y').y(b.height/2)}
+center();addEventListener('resize',()=>{center();sim.alpha(.3).restart()});
+let moved=0;
+const drag=d3.drag().on('start',(e,d)=>{moved=0;if(!e.active)sim.alphaTarget(.3).restart();d.fx=d.x;d.fy=d.y})
+ .on('drag',(e,d)=>{moved+=Math.abs(e.dx)+Math.abs(e.dy);d.fx=e.x;d.fy=e.y})
+ .on('end',(e,d)=>{if(!e.active)sim.alphaTarget(0);d.fx=null;d.fy=null;if(moved<5){sel=d.id;openEdit()}});
+const nb=id=>{const s=new Set([id]);links.forEach(l=>{if(idOf(l.source)===id)s.add(idOf(l.target));if(idOf(l.target)===id)s.add(idOf(l.source))});return s};
+function mt(n){return n.name.toLowerCase().includes(q)||(n.note||'').toLowerCase().includes(q)}
+function draw(calm){
+ const byId=new Map(nodes.map(n=>[n.id,n])),tp=x=>(byId.get(idOf(x))||{}).type;
+ const qs=q?new Set(nodes.filter(mt).map(n=>n.id)):null;
+ const near=sel?nb(sel):(hl||qs);
+ const lk=d=>{const a=idOf(d.source),b=idOf(d.target);return sel?(a===sel||b===sel):near?(near.has(a)&&near.has(b)):true};
+ const lh=d=>hid.has(tp(d.source))||hid.has(tp(d.target));
+ linkG.selectAll('line').data(links,d=>d.id).join('line').attr('class','link').attr('marker-end','url(#ar)').classed('dim',d=>!!near&&!lk(d)).classed('hide',lh);
+ labG.selectAll('text').data(links,d=>d.id).join('text').attr('class','lab').text(d=>d.rel).classed('show',d=>!!sel&&(idOf(d.source)===sel||idOf(d.target)===sel)&&!lh(d));
+ const g=nodeG.selectAll('g.node').data(nodes,d=>d.id).join(e=>{const g=e.append('g').attr('class','node').call(drag);g.append('circle');g.append('text').attr('text-anchor','middle');g.append('circle').attr('class','nm').attr('r',4.5);return g});
+ g.classed('sel',d=>d.id===sel).classed('dim',d=>!!near&&!near.has(d.id)).classed('hide',d=>hid.has(d.type));
+ g.select('circle').attr('r',R).attr('fill',d=>TYPES[d.type]);
+ g.select('circle.nm').attr('cx',d=>R(d)*.72).attr('cy',d=>-R(d)*.72).style('display',d=>d.note&&d.note.trim()?null:'none');
+ g.select('text').attr('dy',d=>R(d)+14).text(d=>d.name);
+ if(!calm){sim.nodes(nodes);sim.force('link').links(links);sim.alpha(.6).restart();save()}
+}
+sim.on('tick',()=>{
+ linkG.selectAll('line').each(function(d){const dx=d.target.x-d.source.x,dy=d.target.y-d.source.y,L=Math.hypot(dx,dy)||1,rs=R(d.source),rt=R(d.target)+3;
+  d3.select(this).attr('x1',d.source.x+dx/L*rs).attr('y1',d.source.y+dy/L*rs).attr('x2',d.target.x-dx/L*rt).attr('y2',d.target.y-dy/L*rt)});
+ labG.selectAll('text').attr('x',d=>(d.source.x+d.target.x)/2).attr('y',d=>(d.source.y+d.target.y)/2);
+ nodeG.selectAll('g.node').attr('transform',d=>`translate(${d.x},${d.y})`);
+});
+/* sheet */
+const sh=document.getElementById('sheet');
+const el=(t,p={},kids=[])=>{const e=document.createElement(t);Object.assign(e,p);kids.forEach(k=>e.append(k));return e};
+const typeSel=v=>{const s=el('select');Object.keys(TYPES).forEach(t=>s.append(el('option',{value:t,textContent:t,selected:t===v})));return s};
+const nodeSel=(ex,blank)=>{const s=el('select');if(blank)s.append(el('option',{value:'',textContent:blank}));nodes.filter(n=>n.id!==ex).forEach(n=>s.append(el('option',{value:n.id,textContent:n.name+' ('+n.type+')'})));return s};
+const field=(l,c)=>el('div',{},[el('label',{textContent:l}),c]);
+function head(t){const x=el('button',{className:'x',textContent:'×',ariaLabel:'Tutup',onclick:()=>{sel=null;closeSheet();draw()}});return el('h2',{},[el('span',{textContent:t}),x])}
+function closeSheet(){hl=null;sh.className='';sh.innerHTML=''}
+function open(){hl=null;sh.className='on';sh.innerHTML=''}
+function connect(a,b,rel){if(!b||!rel.trim()||a===b)return;if(links.some(l=>idOf(l.source)===a&&idOf(l.target)===b&&l.rel===rel.trim()))return;links.push({id:'l'+(uid++),source:a,target:b,rel:rel.trim()})}
+function openAdd(){
+ open();sh.append(head('Tambah node'));
+ const name=el('input',{type:'text',placeholder:'Contoh: Python',maxLength:60}),ty=typeSel('Skill'),to=nodeSel(null,'Tidak dihubungkan'),rel=el('input',{type:'text',value:'bagian dari'});rel.setAttribute('list','rels');
+ if(sel)to.value=sel;
+ sh.append(field('Nama',name),el('div',{className:'row'},[field('Jenis',ty),field('Level (1-5)',lv=el('input',{type:'text',value:'3',inputMode:'numeric'}))]),field('Hubungkan ke',to),el('div',{style:'height:10px'}),field('Jenis hubungan (node baru → tujuan)',rel),el('div',{style:'height:12px'}),
+ el('button',{className:'btn p',textContent:'Tambah node',onclick:()=>{const nm=name.value.trim();if(!nm){name.focus();return}
+  snap();const id='n'+(uid++);nodes.push({id,name:nm,type:ty.value,level:Math.min(5,Math.max(1,parseInt(lv.value)||3))});connect(id,to.value,rel.value);sel=id;draw();openEdit()}}));
+ name.focus();
+}
+var lv;
+function openEdit(){
+ const d=nodes.find(n=>n.id===sel);if(!d)return closeSheet();open();draw();const sn=once();
+ sh.append(head('Node terpilih'));
+ const name=el('input',{type:'text',value:d.name,oninput:()=>{sn();d.name=name.value;draw()}}),ty=typeSel(d.type),lvl=el('input',{type:'range',min:1,max:5,value:d.level||3});
+ ty.onchange=()=>{sn();d.type=ty.value;draw()};lvl.oninput=()=>{sn();d.level=+lvl.value;draw()};
+ sh.append(field('Nama',name),el('div',{className:'row'},[field('Jenis',ty),field('Level: 1 baru tahu, 5 mahir',lvl)]));
+ const nt=el('textarea',{value:d.note||'',placeholder:'Sumber belajar, bukti pengalaman, sertifikat…',oninput:()=>{sn();d.note=nt.value;save()},onchange:()=>draw()});nt.style.height='84px';
+ sh.append(field('Catatan',nt),el('div',{style:'height:10px'}));
+ const to=nodeSel(d.id,'Pilih node tujuan'),rel=el('input',{type:'text',value:'terkait'});rel.setAttribute('list','rels');
+ sh.append(el('label',{textContent:'Hubungkan node ini ke…'}),to,el('div',{style:'height:8px'}),el('div',{className:'row'},[rel,el('button',{className:'btn p',textContent:'Hubungkan',style:'flex:0 0 auto',onclick:()=>{if(!to.value)return;snap();connect(d.id,to.value,rel.value);draw();openEdit()}})]));
+ const mine=links.filter(l=>idOf(l.source)===d.id||idOf(l.target)===d.id);
+ if(mine.length){sh.append(el('label',{textContent:'Hubungan saat ini'}));
+  mine.forEach(l=>{const out=idOf(l.source)===d.id,o=nodes.find(n=>n.id===(out?idOf(l.target):idOf(l.source)));
+   sh.append(el('div',{className:'conn'},[el('span',{textContent:out?`${l.rel} → ${o.name}`:`${o.name} → ${l.rel}`}),el('button',{className:'x',textContent:'×',ariaLabel:'Hapus hubungan',onclick:()=>{snap();links=links.filter(x=>x!==l);draw();openEdit()}})]))})}
+ sh.append(el('div',{style:'height:12px'}),el('button',{className:'btn d',textContent:'Hapus node',onclick:()=>{snap();links=links.filter(l=>idOf(l.source)!==d.id&&idOf(l.target)!==d.id);nodes=nodes.filter(n=>n!==d);sel=null;closeSheet();draw()}}));
+}
+function cypher(){
+ const v=n=>'n'+nodes.indexOf(n),q=s=>s.replace(/\\/g,'\\\\').replace(/'/g,"\\'");
+ return nodes.map(n=>`CREATE (${v(n)}:${n.type} {name:'${q(n.name)}', level:${n.level||3}${n.note&&n.note.trim()?`, note:'${q(n.note.replace(/\n/g,' '))}'`:''}})`).concat(links.map(l=>{const a=nodes.find(n=>n.id===idOf(l.source)),b=nodes.find(n=>n.id===idOf(l.target));return `CREATE (${v(a)})-[:${l.rel.toUpperCase().replace(/[^A-Z0-9]+/g,'_')}]->(${v(b)})`})).join('\n')}
+function openExp(){
+ open();sh.append(head('Ekspor / impor'));
+ const ta=el('textarea',{value:cypher(),spellcheck:false});
+ const copy=t=>{ta.value=t;ta.select();try{navigator.clipboard.writeText(t)}catch(e){}markExp()};
+ const json=()=>JSON.stringify({uid,nodes:nodes.map(({id,name,type,level,note})=>({id,name,type,level,note})),links:links.map(l=>({id:l.id,s:idOf(l.source),t:idOf(l.target),rel:l.rel}))});
+ sh.append(el('p',{className:'hint',textContent:'Salin Cypher untuk Neo4j, atau JSON untuk cadangan. Tempel JSON lalu tekan Muat untuk memulihkan.'}),ta,el('div',{style:'height:10px'}),
+ el('div',{className:'row w'},[el('button',{className:'btn',textContent:'Cypher',onclick:()=>copy(cypher())}),el('button',{className:'btn',textContent:'JSON',onclick:()=>copy(json())}),...(dl?[el('button',{className:'btn',textContent:'Simpan file',onclick:async()=>{try{await dl.save({filename:'peta-pengetahuan.json',data:json()});markExp()}catch(e){}}})]:[]),
+ el('button',{className:'btn p',textContent:'Muat',onclick:()=>{try{const j=JSON.parse(ta.value);if(!j.nodes||!j.links)throw 0;snap();uid=j.uid||1000;nodes=j.nodes;links=j.links.map((l,i)=>({id:l.id||'l'+i,source:l.s,target:l.t,rel:l.rel}));sel=null;closeSheet();draw()}catch(e){ta.value='JSON tidak valid. Ekspor JSON dulu untuk melihat formatnya.'}}})]));
+}
+
+const nbrs=id=>{const o=new Set();links.forEach(l=>{const a=idOf(l.source),b=idOf(l.target);if(a===id)o.add(b);else if(b===id)o.add(a)});return [...o].map(i=>nodes.find(n=>n.id===i)).filter(Boolean)};
+function openAn(){
+ open();sh.append(head('Analisis'));
+ const goal=n=>n.type==='Bidang'||n.type==='Karir';
+ const bridges=nodes.filter(n=>!goal(n)).map(n=>({n,f:nbrs(n.id).filter(x=>x.type==='Bidang')})).filter(x=>x.f.length>1);
+ const gaps=nodes.filter(goal).map(g=>({g,low:nbrs(g.id).filter(x=>(x.type==='Skill'||x.type==='Konsep')&&(x.level||3)<=2)})).filter(x=>x.low.length);
+ const row=(n,txt)=>el('div',{className:'conn'},[el('span',{textContent:txt}),el('button',{className:'btn',textContent:'Buka',style:'padding:4px 10px!important',onclick:()=>{sel=n.id;openEdit()}})]);
+ const sorot=(t,ids)=>el('button',{className:'btn p',textContent:t,onclick:()=>{sel=null;hl=new Set(ids);draw()}});
+ sh.append(el('p',{className:'hint',textContent:'Jembatan: skill yang terhubung ke dua bidang atau lebih. Celah: skill atau konsep level 1-2 yang terhubung ke bidang atau karir.'}));
+ sh.append(el('label',{textContent:'Jembatan antar bidang ('+bridges.length+')'}));
+ if(bridges.length){bridges.forEach(x=>sh.append(row(x.n,x.n.name+': '+x.f.map(f=>f.name).join(', '))));sh.append(el('div',{style:'height:8px'}),sorot('Sorot jembatan',bridges.flatMap(x=>[x.n.id,...x.f.map(f=>f.id)])))}
+ else sh.append(el('p',{className:'hint',textContent:'Belum ada. Hubungkan satu skill ke dua node Bidang untuk melihat jembatan.'}));
+ sh.append(el('div',{style:'height:14px'}),el('label',{textContent:'Celah yang perlu dikuatkan'}));
+ if(gaps.length){gaps.forEach(x=>x.low.forEach(l=>sh.append(row(l,l.name+' (level '+(l.level||3)+') untuk '+x.g.name))));sh.append(el('div',{style:'height:8px'}),sorot('Sorot celah',gaps.flatMap(x=>[x.g.id,...x.low.map(l=>l.id)])))}
+ else sh.append(el('p',{className:'hint',textContent:'Belum ada. Turunkan level skill yang masih lemah, atau tambah node Karir lalu hubungkan skill yang dibutuhkannya.'}));
+}
+document.getElementById('bAn').onclick=openAn;
+document.getElementById('bFit').onclick=()=>{nodes.forEach(n=>{n.fx=null;n.fy=null});svg.transition().duration(400).call(zoom.transform,d3.zoomIdentity);sim.alpha(1).restart()};
+document.getElementById('bAdd').onclick=openAdd;document.getElementById('bExp').onclick=openExp;
+const once=()=>{let d=false;return()=>{if(!d){d=true;snap()}}};
+const stateStr=()=>JSON.stringify({n:nodes.map(({id,name,type,level,note,x,y})=>({id,name,type,level,note,x,y})),l:links.map(l=>({id:l.id,s:idOf(l.source),t:idOf(l.target),rel:l.rel}))});
+function snap(){hist.push(stateStr());if(hist.length>30)hist.shift();undoBtn()}
+function undoBtn(){document.getElementById('bUn').disabled=!hist.length}
+function undo(){if(!hist.length)return;const j=JSON.parse(hist.pop());nodes=j.n;links=j.l.map(l=>({id:l.id,source:l.s,target:l.t,rel:l.rel}));if(!nodes.some(n=>n.id===sel))sel=null;undoBtn();if(sel)openEdit();else{closeSheet();draw()}}
+document.getElementById('bUn').onclick=undo;
+function renderLegend(){const lg=document.getElementById('legend');lg.innerHTML='';Object.entries(TYPES).forEach(([k,c])=>lg.append(el('button',{className:'chip'+(hid.has(k)?' off':''),ariaPressed:String(!hid.has(k)),onclick:()=>{hid.has(k)?hid.delete(k):hid.add(k);renderLegend();draw(true)}},[el('i',{style:'background:'+c}),document.createTextNode(k)])))}
+const qi=document.getElementById('q');
+qi.oninput=()=>{q=qi.value.trim().toLowerCase();draw(true)};
+qi.onkeydown=e=>{if(e.key==='Enter'&&q){const m=nodes.find(mt);if(m){qi.blur();sel=m.id;openEdit();svg.transition().duration(450).call(zoom.translateTo,m.x,m.y)}}};
+function meta(){let m={};try{m=JSON.parse(localStorage.getItem(MK)||'{}')}catch(e){}if(!m.first){m.first=Date.now();try{localStorage.setItem(MK,JSON.stringify(m))}catch(e){}}return m}
+function markExp(){const m=meta();m.exp=Date.now();try{localStorage.setItem(MK,JSON.stringify(m))}catch(e){}uiSt()}
+function uiSt(){document.getElementById('st').textContent=synced?'Tersinkron ke akunmu':'Tersimpan di browser ini saja';
+ const m=meta(),days=(Date.now()-Math.max(m.first,m.exp||0))/864e5,b=document.getElementById('bn'),show=!synced&&days>=7;b.className=show?'on':'';if(show)b.querySelector('span').textContent='Sudah '+Math.floor(days)+' hari belum ekspor cadangan.'}
+document.getElementById('bnB').onclick=openExp;
+function pushRemote(){if(!dbDoc)return;clearTimeout(pushT);pushT=setTimeout(async()=>{try{await dbDoc.set({json:JSON.stringify(snapData()),ts});synced=true}catch(e){synced=false}uiSt()},1500)}
+async function initSync(){
+ if(!window.claude||!claude.use)return;
+ try{const d=await claude.use('downloads');if(d)dl=d}catch(e){}
+ try{const [db,user]=await Promise.all([claude.use('db'),claude.use('user')]);if(!db||!user)return;const id=await user.id();if(!id)return;
+  dbDoc=db.doc('data/users/'+id+'/graph');const snap=await dbDoc.get();
+  if(snap.exists&&snap.data()&&snap.data().ts>ts){const r=snap.data(),j=JSON.parse(r.json);uid=j.uid||uid;nodes=j.nodes;links=j.links.map((l,i)=>({id:l.id||'l'+i,source:l.s,target:l.t,rel:l.rel}));sel=null;hist=[];undoBtn();closeSheet();draw();ts=r.ts}
+  else await dbDoc.set({json:JSON.stringify(snapData()),ts});
+  synced=true}catch(e){synced=false}
+ uiSt()}
+renderLegend();uiSt();undoBtn();initSync();
+
+draw();booting=false;
+</script>
+</body>
+</html>
