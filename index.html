@@ -46,6 +46,7 @@ h2{font-size:15px;margin:0 0 10px;display:flex;justify-content:space-between;ali
 .cbi{display:flex;align-items:center;gap:8px;padding:10px;font-size:14px;cursor:pointer;border-bottom:1px solid var(--bd)}
 .cbi:last-child{border-bottom:0}.cbi.on{background:var(--panel);font-weight:700}.cbi.mute{color:var(--mute)}
 .cbi i{width:10px;height:10px;border-radius:50%;flex:0 0 auto}.cbi small{margin-left:auto;color:var(--mute);font-size:11px}
+.node .bd{cursor:pointer}.node .bd circle{fill:var(--acc);stroke:var(--bg);stroke-width:2px}.node .bd.col circle{fill:#e08a00}.node .bd text{font-size:10px;font-weight:700;fill:#fff;stroke:none;pointer-events:none}
 .hint{font-size:13px;color:var(--mute);margin:0 0 10px}
 </style>
 </head>
@@ -67,7 +68,7 @@ h2{font-size:15px;margin:0 0 10px;display:flex;justify-content:space-between;ali
 <datalist id="rels"><option value="bagian dari"><option value="dipakai di"><option value="prasyarat untuk"><option value="dibutuhkan oleh"><option value="mendukung"><option value="terkait"></datalist>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/d3/7.9.0/d3.min.js"></script>
 <script>
-const TYPES={Bidang:'#3b4cca',Skill:'#0f9d8a',Karir:'#e08a00',Konsep:'#9b51e0',Proyek:'#e0457b'};
+const TYPES={Bidang:'#3b4cca',Skill:'#0f9d8a',Karir:'#e08a00',Konsep:'#9b51e0',Proyek:'#e0457b',Tool:'#00bcd4',Sumber:'#7cb342',Target:'#e53935'};
 const KEY='kg-peta-v1';
 let nodes=[],links=[],sel=null,uid=1,hl=null,ts=0,hid=new Set(),q='',hist=[],dbDoc=null,synced=false,pushT=null,dl=null,booting=true;const MK='kg-meta-v1';
 function seed(){
@@ -80,7 +81,10 @@ function load(){try{const j=JSON.parse(localStorage.getItem(KEY)||'null');if(j&&
 const snapData=()=>({uid,ts,nodes:nodes.map(({id,name,type,level,note})=>({id,name,type,level,note})),links:links.map(l=>({id:l.id,s:idOf(l.source),t:idOf(l.target),rel:l.rel}))});
 function save(){if(booting)return;ts=Date.now();try{localStorage.setItem(KEY,JSON.stringify(snapData()))}catch(e){}pushRemote()}
 const idOf=x=>typeof x==='object'?x.id:x;
-const R=d=>d.type==='Bidang'?24:d.type==='Karir'?20:9+(d.level||2)*2.5;
+const col=new Set();
+function kidsMap(){const m=new Map();links.forEach(l=>{if(l.rel==='bagian dari'){const p=idOf(l.target);if(!m.has(p))m.set(p,[]);m.get(p).push(idOf(l.source))}});return m}
+function descOf(id,km){const seen=new Set([id]),st=[...(km.get(id)||[])],out=[];while(st.length){const x=st.pop();if(seen.has(x))continue;seen.add(x);out.push(x);(km.get(x)||[]).forEach(y=>st.push(y))}return out}
+const R=d=>d.type==='Bidang'?24:d.type==='Karir'?20:d.type==='Target'?18:9+(d.level||2)*2.5;
 load();
 const svg=d3.select('#g');svg.append('defs').append('marker').attr('id','ar').attr('viewBox','0 0 10 10').attr('refX',9).attr('refY',5).attr('markerWidth',6).attr('markerHeight',6).attr('orient','auto').append('path').attr('d','M0,0L10,5L0,10z').attr('class','ah');
 const root=svg.append('g'),linkG=root.append('g'),labG=root.append('g'),nodeG=root.append('g');
@@ -97,14 +101,16 @@ const nb=id=>{const s=new Set([id]);links.forEach(l=>{if(idOf(l.source)===id)s.a
 function mt(n){return n.name.toLowerCase().includes(q)||(n.note||'').toLowerCase().includes(q)}
 function draw(calm){
  const byId=new Map(nodes.map(n=>[n.id,n])),tp=x=>(byId.get(idOf(x))||{}).type;
+ const km=kidsMap(),hs=new Set();col.forEach(p=>descOf(p,km).forEach(x=>hs.add(x)));
  const qs=q?new Set(nodes.filter(mt).map(n=>n.id)):null;
  const near=sel?nb(sel):(hl||qs);
  const lk=d=>{const a=idOf(d.source),b=idOf(d.target);return sel?(a===sel||b===sel):near?(near.has(a)&&near.has(b)):true};
- const lh=d=>hid.has(tp(d.source))||hid.has(tp(d.target));
+ const lh=d=>hid.has(tp(d.source))||hid.has(tp(d.target))||hs.has(idOf(d.source))||hs.has(idOf(d.target));
  linkG.selectAll('line').data(links,d=>d.id).join('line').attr('class','link').attr('marker-end','url(#ar)').classed('dim',d=>!!near&&!lk(d)).classed('hide',lh);
  labG.selectAll('text').data(links,d=>d.id).join('text').attr('class','lab').text(d=>d.rel).classed('show',d=>!!sel&&(idOf(d.source)===sel||idOf(d.target)===sel)&&!lh(d));
- const g=nodeG.selectAll('g.node').data(nodes,d=>d.id).join(e=>{const g=e.append('g').attr('class','node').call(drag);g.append('circle');g.append('text').attr('text-anchor','middle');g.append('circle').attr('class','nm').attr('r',4.5);return g});
- g.classed('sel',d=>d.id===sel).classed('dim',d=>!!near&&!near.has(d.id)).classed('hide',d=>hid.has(d.type));
+ const g=nodeG.selectAll('g.node').data(nodes,d=>d.id).join(e=>{const g=e.append('g').attr('class','node').call(drag);g.append('circle');g.append('text').attr('text-anchor','middle');g.append('circle').attr('class','nm').attr('r',4.5);const b=g.append('g').attr('class','bd');b.append('circle').attr('r',9);b.append('text').attr('text-anchor','middle').attr('dy',3.5);['mousedown','touchstart','pointerdown'].forEach(ev=>b.on(ev+'.stop',e=>e.stopPropagation()));b.on('click',(e,d)=>{e.stopPropagation();col.has(d.id)?col.delete(d.id):col.add(d.id);draw(true);if(sel===d.id)openEdit()});return g});
+ g.classed('sel',d=>d.id===sel).classed('dim',d=>!!near&&!near.has(d.id)).classed('hide',d=>hid.has(d.type)||hs.has(d.id));
+ g.select('g.bd').style('display',d=>km.has(d.id)?null:'none').attr('transform',d=>`translate(${R(d)*.72},${R(d)*.72})`).classed('col',d=>col.has(d.id)).select('text').text(d=>col.has(d.id)?'+'+descOf(d.id,km).length:(km.get(d.id)||[]).length);
  g.select('circle').attr('r',R).attr('fill',d=>TYPES[d.type]);
  g.select('circle.nm').attr('cx',d=>R(d)*.72).attr('cy',d=>-R(d)*.72).style('display',d=>d.note&&d.note.trim()?null:'none');
  g.select('text').attr('dy',d=>R(d)+14).text(d=>d.name);
@@ -165,6 +171,10 @@ function openEdit(){
  sh.append(field('Catatan',nt),el('div',{style:'height:10px'}));
  const to=nodeSel(d.id,'Pilih node tujuan'),rel=el('input',{type:'text',value:'terkait'});rel.setAttribute('list','rels');
  sh.append(el('label',{textContent:'Hubungkan node ini ke…'}),to,el('div',{style:'height:8px'}),el('div',{className:'row'},[rel,el('button',{className:'btn p',textContent:'Hubungkan',style:'flex:0 0 auto',onclick:()=>{if(!to.value)return;snap();connect(d.id,to.value,rel.value);draw();openEdit()}})]));
+ const km=kidsMap(),kids=(km.get(d.id)||[]).map(i=>nodes.find(n=>n.id===i)).filter(Boolean);
+ if(kids.length){sh.append(el('label',{textContent:'Sub-node ('+kids.length+')'}));
+  kids.forEach(c=>sh.append(el('div',{className:'conn'},[el('span',{textContent:c.name+' ('+c.type+')'}),el('button',{className:'x',textContent:'›',ariaLabel:'Buka '+c.name,onclick:()=>{sel=c.id;openEdit()}})])));
+  sh.append(el('button',{className:'btn',textContent:col.has(d.id)?'Tampilkan sub-node':'Lipat sub-node',style:'margin:4px 0 10px',onclick:()=>{col.has(d.id)?col.delete(d.id):col.add(d.id);openEdit()}}))}
  const mine=links.filter(l=>idOf(l.source)===d.id||idOf(l.target)===d.id);
  if(mine.length){sh.append(el('label',{textContent:'Hubungan saat ini'}));
   mine.forEach(l=>{const out=idOf(l.source)===d.id,o=nodes.find(n=>n.id===(out?idOf(l.target):idOf(l.source)));
@@ -187,9 +197,9 @@ function openExp(){
 const nbrs=id=>{const o=new Set();links.forEach(l=>{const a=idOf(l.source),b=idOf(l.target);if(a===id)o.add(b);else if(b===id)o.add(a)});return [...o].map(i=>nodes.find(n=>n.id===i)).filter(Boolean)};
 function openAn(){
  open();sh.append(head('Analisis'));
- const goal=n=>n.type==='Bidang'||n.type==='Karir';
+ const goal=n=>n.type==='Bidang'||n.type==='Karir'||n.type==='Target';
  const bridges=nodes.filter(n=>!goal(n)).map(n=>({n,f:nbrs(n.id).filter(x=>x.type==='Bidang')})).filter(x=>x.f.length>1);
- const gaps=nodes.filter(goal).map(g=>({g,low:nbrs(g.id).filter(x=>(x.type==='Skill'||x.type==='Konsep')&&(x.level||3)<=2)})).filter(x=>x.low.length);
+ const gaps=nodes.filter(goal).map(g=>({g,low:nbrs(g.id).filter(x=>(x.type==='Skill'||x.type==='Konsep'||x.type==='Tool')&&(x.level||3)<=2)})).filter(x=>x.low.length);
  const row=(n,txt)=>el('div',{className:'conn'},[el('span',{textContent:txt}),el('button',{className:'btn',textContent:'Buka',style:'padding:4px 10px!important',onclick:()=>{sel=n.id;openEdit()}})]);
  const sorot=(t,ids)=>el('button',{className:'btn p',textContent:t,onclick:()=>{sel=null;hl=new Set(ids);draw()}});
  sh.append(el('p',{className:'hint',textContent:'Jembatan: skill yang terhubung ke dua bidang atau lebih. Celah: skill atau konsep level 1-2 yang terhubung ke bidang atau karir.'}));
@@ -198,7 +208,7 @@ function openAn(){
  else sh.append(el('p',{className:'hint',textContent:'Belum ada. Hubungkan satu skill ke dua node Bidang untuk melihat jembatan.'}));
  sh.append(el('div',{style:'height:14px'}),el('label',{textContent:'Celah yang perlu dikuatkan'}));
  if(gaps.length){gaps.forEach(x=>x.low.forEach(l=>sh.append(row(l,l.name+' (level '+(l.level||3)+') untuk '+x.g.name))));sh.append(el('div',{style:'height:8px'}),sorot('Sorot celah',gaps.flatMap(x=>[x.g.id,...x.low.map(l=>l.id)])))}
- else sh.append(el('p',{className:'hint',textContent:'Belum ada. Turunkan level skill yang masih lemah, atau tambah node Karir lalu hubungkan skill yang dibutuhkannya.'}));
+ else sh.append(el('p',{className:'hint',textContent:'Belum ada. Turunkan level skill yang masih lemah, atau tambah node Karir/Target lalu hubungkan skill yang dibutuhkannya.'}));
 }
 document.getElementById('bAn').onclick=openAn;
 document.getElementById('bFit').onclick=()=>{nodes.forEach(n=>{n.fx=null;n.fy=null});svg.transition().duration(400).call(zoom.transform,d3.zoomIdentity);sim.alpha(1).restart()};
