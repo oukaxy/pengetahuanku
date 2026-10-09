@@ -42,6 +42,10 @@ textarea{font:12px ui-monospace,monospace;color:var(--ink);height:130px}
 h2{font-size:15px;margin:0 0 10px;display:flex;justify-content:space-between;align-items:center}
 .x{background:none;border:0;font-size:22px;line-height:1;cursor:pointer;color:var(--mute)}
 .conn{display:flex;justify-content:space-between;align-items:center;font-size:13px;padding:5px 0;border-bottom:1px solid var(--bd)}
+.cbl{display:none;max-height:210px;overflow-y:auto;margin-top:6px;border:1px solid var(--bd);border-radius:9px;background:var(--bg)}
+.cbi{display:flex;align-items:center;gap:8px;padding:10px;font-size:14px;cursor:pointer;border-bottom:1px solid var(--bd)}
+.cbi:last-child{border-bottom:0}.cbi.on{background:var(--panel);font-weight:700}.cbi.mute{color:var(--mute)}
+.cbi i{width:10px;height:10px;border-radius:50%;flex:0 0 auto}.cbi small{margin-left:auto;color:var(--mute);font-size:11px}
 .hint{font-size:13px;color:var(--mute);margin:0 0 10px}
 </style>
 </head>
@@ -116,7 +120,26 @@ sim.on('tick',()=>{
 const sh=document.getElementById('sheet');
 const el=(t,p={},kids=[])=>{const e=document.createElement(t);Object.assign(e,p);kids.forEach(k=>e.append(k));return e};
 const typeSel=v=>{const s=el('select');Object.keys(TYPES).forEach(t=>s.append(el('option',{value:t,textContent:t,selected:t===v})));return s};
-const nodeSel=(ex,blank)=>{const s=el('select');if(blank)s.append(el('option',{value:'',textContent:blank}));nodes.filter(n=>n.id!==ex).forEach(n=>s.append(el('option',{value:n.id,textContent:n.name+' ('+n.type+')'})));return s};
+const nodeSel=(ex,blank)=>{
+ const w=el('div',{className:'cb'}),inp=el('input',{type:'text',placeholder:blank+' (ketik untuk cari)',autocomplete:'off'}),list=el('div',{className:'cbl'});
+ let val='',keep=0;const lab=n=>n.name+' ('+n.type+')';
+ const hide=()=>{list.style.display='none'};
+ const pick=id=>{val=id;const n=nodes.find(x=>x.id===id);inp.value=n?lab(n):'';hide()};
+ const match=()=>{const f=inp.value.trim().toLowerCase();return nodes.filter(n=>n.id!==ex&&(!f||(n.name+' '+n.type).toLowerCase().includes(f)))};
+ function render(){list.innerHTML='';
+  if(val)list.append(el('div',{className:'cbi mute',textContent:'✕ '+blank,onclick:()=>pick('')}));
+  const m=match();
+  m.forEach(n=>list.append(el('div',{className:'cbi'+(n.id===val?' on':''),onclick:()=>pick(n.id)},[el('i',{style:'background:'+TYPES[n.type]}),document.createTextNode(n.name),el('small',{textContent:n.type})])));
+  if(!m.length)list.append(el('div',{className:'cbi mute',textContent:'Tidak ada node yang cocok'}));
+  list.style.display='block'}
+ inp.onfocus=()=>{inp.select();render()};
+ inp.oninput=()=>{val='';render()};
+ inp.onkeydown=e=>{if(e.key==='Enter'){e.preventDefault();const m=match();if(m.length){pick(m[0].id);inp.blur()}}};
+ inp.onblur=()=>{setTimeout(()=>{if(!keep)hide();keep=0},0)};
+ list.onpointerdown=()=>{keep=1};
+ w.append(inp,list);hide();
+ Object.defineProperty(w,'value',{get:()=>val,set:v=>pick(v)});
+ return w};
 const field=(l,c)=>el('div',{},[el('label',{textContent:l}),c]);
 function head(t){const x=el('button',{className:'x',textContent:'×',ariaLabel:'Tutup',onclick:()=>{sel=null;closeSheet();draw()}});return el('h2',{},[el('span',{textContent:t}),x])}
 function closeSheet(){hl=null;sh.className='';sh.innerHTML=''}
